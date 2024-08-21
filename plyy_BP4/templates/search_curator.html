@@ -1,0 +1,38 @@
+{% extends "base_search.html" %}
+
+{% block tag %}{% endblock %}
+
+{% block script_tag %}
+<script>
+    function fetchTag() {
+        fetch('/api/main/tag')
+        .then(response => response.json())
+        .then(data => {  
+            data.forEach(data => {
+                tagList.push(data.tag);
+            })
+        }).catch(error => console.error('데이터를 처리하는 과정에서 오류가 발생하였습니다.'))
+    };
+
+    
+    function searchByTag() {
+        searchInput.value = '# ' + tagList[parseInt(Math.random() * tagList.length)];
+        formBox.submit();
+    };
+</script>
+{% endblock %}
+
+
+{% block script1 %}
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            searchInput.value = query;
+            fetchCurator(`/api/search/curator?q=${encodeURIComponent(query)}`);
+            document.title = 'PLYY | Search CURATOR';
+            mainTab.classList.remove('tab-type1');
+            mainTab.classList.add('tab-type2');
+            curatorTab.classList.remove('tab-type1--deactive');
+            plyyTab.classList.add('tab-type1--deactive');
+        });
+    </script>
+{% endblock %}

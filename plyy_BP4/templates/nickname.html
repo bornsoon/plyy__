@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    <!-- 닉네임 변경 확인 모달 -->
+    <div id="change-nickname1" class="modal">
+        <div class="modal__title">
+            <span class="fs20">닉네임 변경</span>
+        </div>
+        <div class="modal__text">
+            <span class="fs14">새로운 닉네임을 입력해주세요.</span>
+                <input value="" type="text" id="current-pw" class="fs14" placeholder="비밀번호 확인">
+                <p id="current-pw-error" class="fs14 hide">비밀번호가 올바르지 않습니다.</p>
+        </div>
+        <div class="modal__btns align both">
+            <button class="btn confirm" onclick="validateNickname()">확인</button>
+            <button class="btn cancel" onclick="closenNickModal()">취소</button>
+        </div>
+    </div>
+
+</body>
+
+
+<script>
+    const userNickname = "{{ session.nickname }}";
+    function setInputValue() {
+        document.getElementById('current-pw').value = userNickname;
+    }
+    setInputValue();
+
+    async function validateNickname() {
+        const nicknameInput = document.getElementById('nickname');
+        const nicknameErrorMessage = document.getElementById('nickname-error-message');
+        const nickname = nicknameInput.value.trim();
+        const signupInput = document.getElementById('signup-input');
+
+        // 초기화
+        nicknameErrorMessage.textContent = "";
+        nicknameErrorMessage.classList.add("hide");
+        nicknameInput.classList.remove("invalid");
+
+        // 닉네임 유효성 검사
+        if (nickname === "") {
+            nicknameErrorMessage.textContent = "닉네임을 입력해 주세요.";
+            nicknameErrorMessage.classList.remove("hide");
+            nicknameInput.classList.add("invalid");
+            return;
+        }
+
+        try {
+            // API 호출
+            const response = await fetch(`/api/nickname/${encodeURIComponent(nickname)}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ nickname: nickname })
+            });
+
+            if (!response.ok) {
+                throw new Error('Network response was not ok');
+            }
+
+            const result = await response.json();
+
+            if (result.exists) {
+                nicknameErrorMessage.textContent = "이미 사용 중인 닉네임입니다.";
+                nicknameErrorMessage.classList.remove("hide");
+                nicknameInput.classList.add("invalid");
+            } else {
+                // 닉네임이 유효할 때
+                userNickName = nickname;
+                nicknameErrorMessage.textContent = "사용 가능한 닉네임입니다.";
+                nicknameErrorMessage.classList.remove("hide");
+                nicknameInput.classList.add("valid");
+                signupInput.classList.remove("signup__input--invalid");
+                signupInput.classList.add("signup__input--valid");
+
+                // 기존 버튼을 새 버튼으로 교체
+                const newButton = document.createElement('button');
+                newButton.className = 'btn confirm';
+                newButton.textContent = '회원가입 하기';
+                newButton.id = 'next-step-button';
+                newButton.onclick = async function() {
+                    await submitSignup(); // 회원가입 요청
+                    showSuccess(); // 모달 표시
+                };
+
+                const oldButton = document.getElementById('signnickname');
+                oldButton.parentNode.replaceChild(newButton, oldButton);
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            nicknameErrorMessage.textContent = "서버에 연결할 수 없습니다.";
+            nicknameErrorMessage.classList.remove("hide");
+            nicknameInput.classList.add("invalid");
+        }
+    }
+
+    function closeNickModal() {
+        document.getElementById('change-nickname1').classList.add('hide');
+    }
+
+
+</script>
+</html>

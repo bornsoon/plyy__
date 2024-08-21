@@ -1,0 +1,160 @@
+{% extends "base.html" %}
+
+{% block container %}
+    {% block search %}
+        <!-- 메인 검색창 : 디폴트 -->
+        <form class="search-type1 align both" name="form-box">
+            <input type="text" class="fs14" id="search-input" name="q" placeholder="플레이리스트 또는 큐레이터 검색">
+            <div class="align both">
+                <button type="button" class="btn-hash" id="search-hash" onclick="searchByTag();" aria-label="해시태그 검색"></button>
+                <button class="btn-search" onclick="searchByName(this.form);" aria-label="검색"></button>
+            </div>
+        </form>
+
+        <!-- 추천 태그 -->
+        {% block tag %}
+        <nav class="vertical-scroll">
+            <ul class="search-tags" id="tag"></ul>
+        </nav>
+        {% endblock %}
+
+        <!-- 메인 탭 -->
+        {% block tab %}
+            <!-- 메인 검색결과 탭 -->
+            <div>
+                <div class="tab-type3 align left" onclick="location.href='/'">
+                    <div><button class="btn__arrow-left--white"></button></div>
+                    <div><button class="h2">In plyy,</button></div>
+                </div>
+            </div>
+
+            <nav>
+                <ul class="tab-type1" id="tab-type">
+                    <li id="plyy_tab"><button class="h2" id="plyy_tab">PLYY</button></li>
+                    <li class="tab-type1--deactive" id="curator_tab"><button class="h2">CURATOR</button></li>
+                </ul>
+            </nav>
+        {% endblock %}
+        
+    {% endblock %}
+    
+    <!-- 플리 & 큐레이터 카드 -->
+    {% block content %}      
+        <ul class="plyy-card mg32" id="mainList"></ul>
+        
+        <!-- 로그인 정보를 포함한 hidden element 추가 -->
+        <div id="session-data" data-session-id="{{ session['id'] }}" style="display: none;"></div>
+
+        <!-- 메인화면 화살표 플로팅 아이콘 -->
+        <div class="fixed-floating"><button class="btn__main__arrow" aria-label="메인에서 위로가기"></button></div>
+    {% endblock %}
+    
+{% endblock %}
+
+{% block search_script %}
+    <script src="/static/js/plike.js"></script>
+    <script src="/static/js/clike.js"></script>
+    <script src="/static/js/runtime.js"></script>
+    <script src="/static/js/tag.js"></script>
+    <script src="/static/js/fetchPlyy.js"></script>
+    <script src="/static/js/fetchCurator.js"></script>
+    <script src="/static/js/scrollTop.js"></script>
+    <script>
+        let playlistLikeStates = {}; // 플레이리스트 좋아요 상태
+        let curatorLikeStates = {}; // 큐레이터 좋아요 상태
+        let tab_status = 'plyy';
+        var tagList = new Array;
+        const mainList = document.getElementById('mainList');
+        const plyyTab = document.getElementById('plyy_tab');
+        const curatorTab = document.getElementById('curator_tab');
+        const mainTab = document.getElementById('tab-type');
+        const searchInput = document.getElementById('search-input');
+        const searchHash = document.getElementById('search-hash');
+        const tags = document.getElementById('tag');
+
+        let url = new URLSearchParams(window.location.search);
+        let query = url.get('q');
+        const formBox = document.forms['form-box'];
+        searchInput.value = query;
+
+        
+        document.addEventListener('DOMContentLoaded', function() {
+            fetchTag();
+        });
+        
+
+        function clearList(){
+            while(mainList.firstChild)
+            mainList.removeChild(mainList.firstChild);
+        };
+
+        function searchByName(form) {
+            form.method = 'GET';
+            form.submit();
+        };
+    </script>
+
+
+    {% block script_tag %}
+    <script>   
+        // 추천 태그
+        function fetchTag() {
+            fetch('/api/main/tag')
+            .then(response => response.json())
+            .then(data => { 
+                    data.sort(() => Math.random() - 0.5);
+                data.forEach(data => {
+                    const newItem = document.createElement('li');
+                    newItem.innerHTML = `<a class="fs12 badge tag" href="/search/plyy?q=%23+${data.tag}"># ` +
+                                        data.tag + '</a>';
+                    tags.appendChild(newItem);
+                    tagList.push(data.tag);
+                })
+            }).catch(error => console.error('데이터를 처리하는 과정에서 오류가 발생하였습니다.'))
+        };
+
+
+        function searchByTag() {
+            if (searchHash.classList.contains('btn-hash--active')) {
+                searchHash.classList.remove('btn-hash--active');
+                searchInput.value = '';
+            } else {
+                searchHash.classList.add('btn-hash--active');
+                searchInput.value = '# ' + tagList[parseInt(Math.random() * tagList.length)];
+            }
+        };
+    </script>
+    {% endblock %}
+{% endblock %}
+
+
+{% block script %}
+    {% block script1 %}{% endblock %} 
+    <script>
+        plyyTab.addEventListener('click', function(event){
+            searchInput.value = query;
+            document.title = 'PLYY | Search PLYY';
+            clearList();
+            fetchCurator(`/api/search/plyy?q=${encodeURIComponent(query)}`);
+            formBox.action = '/search/plyy';
+            formBox.submit();
+            mainTab.classList.remove('tab-type2');
+            mainTab.classList.add('tab-type1');
+            plyyTab.classList.remove('tab-type1--deactive');
+            curatorTab.classList.add('tab-type1--deactive');
+        });
+
+        curatorTab.addEventListener('click', function(event){
+            searchInput.value = query;
+            document.title = 'PLYY | Search CURATOR';
+            clearList();
+            fetchCurator(`/api/search/curator?q=${encodeURIComponent(query)}`);
+            formBox.action = '/search/curator';
+            formBox.submit();
+            mainTab.classList.remove('tab-type1');
+            mainTab.classList.add('tab-type2');
+            curatorTab.classList.remove('tab-type1--deactive');
+            plyyTab.classList.add('tab-type1--deactive');
+        });
+    </script>   
+{% endblock %}

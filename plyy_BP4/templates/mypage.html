@@ -1,0 +1,87 @@
+{% extends "base_footer.html" %}
+
+{% block content %}
+    <!-- 메인 -->
+    <main class="main">
+        <div class="main__container">
+            <!-- 메인 검색결과 탭 -->
+            <div id="mypage-edit">
+                <!-- 마이페이지 타이틀 -->
+                <div class="tab-type3 align left">
+                    <div><button class="btn__arrow-left--white" onclick="history.back()"></button></div>
+                    <div><button class="h2">마이페이지</button></div>
+                </div>
+                <!-- 마이페이지 프로필 -->
+                <div class="mypage-profile">
+                    <div class="mypage-profile__img">
+                        <img id="profile-img" src="" alt="" class="">
+                    </div>
+                    <span id="profile-name" class="h1"></span>
+                </div>
+                <!-- 마이페이지 기능 리스트 -->
+                <ul class="mypage-menu">
+                    <li>
+                        <a href="/edit" class="align both">
+                            <span class="mypage-menu--active fs20">내 정보 수정</span>
+                            <button class="btn__arrow-right"></button>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="" class="align both">
+                            <span class="fs20">연동계정 관리</span>
+                            <button class="btn__arrow-right"></button>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="" class="align both">
+                            <span class="fs20">큐레이터 지원하기</span>
+                            <button class="btn__arrow-right"></button>
+                        </a>
+                    </li>
+                </ul>
+                <!-- 마이페이지 비활성 기능 클릭시 노출시킬 모달 -->
+                <div class="modal hide">
+                    <div class="modal__title">
+                        <span class="fs20">서비스 준비중</span>
+                    </div>
+                    <div class="modal__text">
+                        <span class="fs14">더 나은 서비스를 제공할 수 있도록 준비중에 있습니다 :)</span>
+                    </div>
+                    <div class="modal__btns">
+                        <button class="btn confirm">확인</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+    </main>
+
+{% endblock %}
+
+{% block script %}
+    <script>
+        // 서버 측에서 템플릿 변수를 JavaScript 변수로 설정
+        const userId = "{{ session.id }}";
+        const userNickname = "{{ session.nickname }}";
+        console.log(userNickname)
+        // 동적으로 이미지와 이름을 설정하는 함수
+        function updateProfile() {
+            const profileImg = document.getElementById('profile-img');
+            const profileName = document.getElementById('profile-name');
+
+            // 이미지 URL 설정
+            if (profileImg) {
+                profileImg.src = `/static/cardimage/U${userId}.jpg`;
+            }
+
+            // 이름 설정
+            if (profileName) {
+                profileName.textContent = userNickname;
+            }
+        }
+
+        // 페이지가 로드될 때 프로필 업데이트 함수 호출
+        document.addEventListener('DOMContentLoaded', updateProfile);
+    </script>
+
+{% endblock %}

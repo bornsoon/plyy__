@@ -1,0 +1,83 @@
+{% extends "base_search.html" %}
+
+<!-- div class="main__container" -->
+
+
+    <!-- 메인 탭 -->
+    {% block tab %}
+        <nav>
+            <ul class="tab-type1" id="tab-type">
+                <li id="plyy_tab"><button class="h2" id="plyy_tab">PLYY</button></li>
+                <li class="tab-type1--deactive" id="curator_tab"><button class="h2">CURATOR</button></li>
+            </ul>
+        </nav>
+    {% endblock %}
+<!-- /div -->
+    
+    <!-- 플리 & 큐레이터 카드 -->
+    {% block content %}      
+        <ul class="plyy-card mg32" id="mainList"></ul>
+
+        <!-- 메인화면 화살표 플로팅 아이콘 -->
+        <div class="fixed-floating"><button class="btn__main__arrow" aria-label="메인에서 위로가기"></button></div>
+        
+        <!-- 로그인 정보를 포함한 hidden element 추가 -->
+        <div id="session-data" data-session-id="{{ session['id'] }}" style="display: none;"></div>
+
+
+        <div id="logineed" class="modal hide" style="text-align: center;">
+            <div class="modal__title">
+                <span class="fs20">로그인 필요</span>
+            </div>
+            <div class="modal__text">
+                <span class="fs14">로그인이 필요한 서비스입니다.<br>로그인 하시겠습니까?</span>
+            </div>
+            <div class="modal__btns align both">
+                <button class="btn confirm" onclick="window.location.href='/login'">확인</button>
+                <button class="btn cancel" onclick="closeModal()">취소</button>
+            </div>
+        </div>
+
+    {% endblock %}
+
+{% block script %}
+    <script>  
+        plyyTab.addEventListener('click', function(event){
+            document.title = 'PLYY';
+            clearList();
+            fetchPlyy('/api/main/plyy');
+            tab_status = 'plyy';
+            formBox.action = '/search/plyy';
+            mainTab.classList.remove('tab-type2');
+            mainTab.classList.add('tab-type1');
+            plyyTab.classList.remove('tab-type1--deactive');
+            curatorTab.classList.add('tab-type1--deactive');
+        });
+
+        curatorTab.addEventListener('click', function(event){
+            document.title = 'PLYY | CURATOR';
+            clearList();
+            fetchCurator('/api/main/curator');
+            tab_status = 'curator';
+            formBox.action = '/search/curator';
+            mainTab.classList.remove('tab-type1');
+            mainTab.classList.add('tab-type2');
+            curatorTab.classList.remove('tab-type1--deactive');
+            plyyTab.classList.add('tab-type1--deactive');
+        });
+
+        document.addEventListener('DOMContentLoaded', function() {
+            document.title = 'PLYY';
+            fetchPlyy('/api/main/plyy');
+            formBox.action = '/search/plyy';
+        });
+
+        function closeModal() {
+            document.getElementById('logineed').classList.add('hide');
+        }
+
+    </script>
+
+    <script src="/static/js/scrollTop.js"></script>
+
+{% endblock %}

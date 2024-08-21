@@ -1,0 +1,101 @@
+{% extends "base_footer.html" %}
+
+{% block container %}
+    {% block search %}
+        {% block tab %}
+    <!-- 메인 검색결과 탭 -->
+    <div>
+        <div class="tab-type3 align left" onclick="location.href='/'">
+            <div><button class="btn__arrow-left--white"></button></div>
+            <div><button class="h2">likes</button></div>
+        </div>
+    </div>
+
+    <nav>
+        <ul class="tab-type1" id="tab-type">
+            <li id="plyy_tab"><button class="h2" id="plyy_tab">PLYY</button></li>
+            <li class="tab-type1--deactive" id="curator_tab"><button class="h2">CURATOR</button></li>
+        </ul>
+    </nav>
+    {% endblock %}
+        
+    {% endblock %}
+    
+    <!-- 플리 & 큐레이터 카드 -->
+    {% block content %}      
+        <ul class="plyy-card mg32" id="mainList"></ul>
+
+        <!-- 로그인 정보를 포함한 hidden element 추가 -->
+        <div id="session-data" data-session-id="{{ session['id'] }}" style="display: none;"></div>
+        
+        <!-- 메인화면 화살표 플로팅 아이콘 -->
+        <div class="fixed-floating"><button class="btn__main__arrow" aria-label="메인에서 위로가기"></button></div>
+    {% endblock %}
+    
+{% endblock %}
+
+{% block search_script %}
+    <script src="/static/js/plike.js"></script>
+    <script src="/static/js/clike.js"></script>
+    <script src="/static/js/runtime.js"></script>
+    <script src="/static/js/tag.js"></script>
+    <script src="/static/js/fetchPlyy.js"></script>
+    <script src="/static/js/fetchCurator.js"></script>
+    <script src="/static//js/scrollTop.js"></script>
+    <script>
+        let playlistLikeStates = {}; // 플레이리스트 좋아요 상태
+        let curatorLikeStates = {}; // 큐레이터 좋아요 상태
+        var tab_status = 'plyy';
+        const mainList = document.getElementById('mainList');
+        const plyyTab = document.getElementById('plyy_tab');
+        const curatorTab = document.getElementById('curator_tab');
+        const mainTab = document.getElementById('tab-type');
+        const searchInput = document.getElementById('search-input');
+
+
+        function clearList(){
+            while(mainList.firstChild)
+                mainList.removeChild(mainList.firstChild);
+        };
+    </script>
+{% endblock %}
+
+
+{% block script %}
+    <script>
+        let id = '';
+
+        document.addEventListener('DOMContentLoaded', function() {
+            let url = window.location.href;
+            url = url.split('/');
+            id = url[url.length - 1];
+            fetchPlyy(`/api/like/plyy/${id}`);
+            document.title =  'LIKES | PLYY';
+        });
+
+        plyyTab.addEventListener('click', function(event){
+            document.title = 'LIKES | PLYY';
+            clearList();
+            fetchPlyy(`/api/like/plyy/${id}`);
+            tab_status = 'plyy';
+            mainTab.classList.remove('tab-type2');
+            mainTab.classList.add('tab-type1');
+            plyyTab.classList.remove('tab-type1--deactive');
+            curatorTab.classList.add('tab-type1--deactive');
+        });
+
+
+        curatorTab.addEventListener('click', function(event){
+            document.title = 'LIKES | CURATOR';
+            clearList();
+            fetchCurator(`/api/like/curator/${id}`);
+            tab_status = 'curator';
+            mainTab.classList.remove('tab-type1');
+            mainTab.classList.add('tab-type2');
+            curatorTab.classList.remove('tab-type1--deactive');
+            plyyTab.classList.add('tab-type1--deactive');
+        });
+    </script>
+    <script src="/static/js/scrollTop.js"></script>
+
+{% endblock %}

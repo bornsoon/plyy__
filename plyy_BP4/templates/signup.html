@@ -1,0 +1,283 @@
+{% extends "base.html" %}
+
+{% block content %}
+    <div id="signup-container">
+        <div class="signup">
+            <p class="signup__text fs20-bold">plyy에 오신 것을 환영합니다!</p>
+            <div id="signup-input" class="signup__input">
+                <label for="email" class="fs14">이메일을 입력해 주세요.</label>
+                <input type="email" class="fs14" id="email" placeholder="plyy@plyy.com">
+                <p class="fs14 hide" id="error-message">이미 가입된 이메일입니다.</p>
+            </div>
+            <button id="signemail" class="btn confirm" onclick="validateEmail()">확인</button>
+        </div>
+    </div>
+{% endblock %}
+
+{% block script %}
+    <script>
+        let userEmail = ''; // 전역 변수로 이메일 저장
+        let userPassword = ''; // 전역 변수로 비밀번호 저장
+        let userNickName = ''; // 전역 변수로 닉네임 저장
+        let success = false; // 올바른 boolean 값 사용
+
+        async function validateEmail() {
+            const emailInput = document.getElementById("email");
+            const errorMessage = document.getElementById("error-message");
+            const email = emailInput.value.trim();
+            const signupInput = document.getElementById('signup-input');
+            const signupContainer = document.getElementById('signup-container');
+
+            // 초기화
+            errorMessage.textContent = "";
+            errorMessage.classList.add("hide");
+            emailInput.classList.remove("invalid");
+
+            if (email === "") {
+                errorMessage.textContent = "이메일을 입력해 주세요.";
+                errorMessage.classList.remove("hide");
+                emailInput.classList.add("invalid");
+                return;
+            }
+
+            try {
+                // API 호출
+                const response = await fetch(`/api/${encodeURIComponent(email)}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ email: email })
+                });
+
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+
+                const result = await response.json();
+
+                if (result.exists) {
+                    errorMessage.textContent = "이미 가입된 이메일입니다.";
+                    errorMessage.classList.remove("hide");
+                    emailInput.classList.add("invalid");
+                    signupInput.classList.add("signup__input--invalid");
+                } else {
+                    userEmail = email; // 전역 변수에 이메일 저장
+                    errorMessage.textContent = "가입 가능한 이메일입니다.";
+                    errorMessage.classList.remove("hide");
+                    emailInput.classList.remove("invalid");
+                    emailInput.classList.add("valid");
+                    signupInput.classList.remove("signup__input--invalid");
+                    signupInput.classList.add("signup__input--valid");
+
+                    // 기존 버튼을 새 버튼으로 교체
+                    const newButton = document.createElement('button');
+                    newButton.className = 'btn confirm';
+                    newButton.textContent = '다음 단계';
+                    newButton.id = 'next-step-button';
+                    newButton.onclick = showPasswordInput;
+
+                    const oldButton = document.getElementById('signemail');
+                    oldButton.parentNode.replaceChild(newButton, oldButton);
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                errorMessage.textContent = "서버에 연결할 수 없습니다.";
+                errorMessage.classList.remove("hide");
+                emailInput.classList.add("invalid");
+            }
+        }
+
+        function showPasswordInput() {
+            const signupContainer = document.getElementById('signup-container');
+            const newContent = `
+                <div class="signup">
+                    <p class="signup__text fs20-bold">큐레이터들이 제공하는 깊이 있는 음악을 즐겨보세요.</p>
+                    <div id="signup-input" class="signup__input">
+                        <label for="password" class="fs14">비밀번호를 입력해주세요. (특수문자 포함 8자리 이상)</label>
+                        <input type="password" class="fs14" id="password" placeholder="특수문자 포함 8자리 이상">
+                        <p class="fs14 hide" id="password-error-message">비밀번호는 특수문자 포함 8자리 이상이어야 합니다.</p>
+                    </div>
+                    <button id="signpassword" class="btn confirm" onclick="validatePassword()">확인</button>
+                </div>
+            `;
+            signupContainer.innerHTML = newContent;
+        }
+
+        async function validatePassword() {
+            const passwordInput = document.getElementById('password');
+            const passwordErrorMessage = document.getElementById('password-error-message');
+            const password = passwordInput.value.trim();
+            const signupInput = document.getElementById('signup-input');
+
+            // 초기화
+            passwordErrorMessage.textContent = "";
+            passwordErrorMessage.classList.add("hide");
+            passwordInput.classList.remove("invalid");
+
+            // 비밀번호 유효성 검사
+            const passwordRegex = /^(?=.*[!@#$%^&*])[A-Za-z\d!@#$%^&*]{8,}$/;
+
+            if (!passwordRegex.test(password)) {
+                passwordErrorMessage.textContent = "비밀번호는 특수문자 포함 8자리 이상이어야 합니다.";
+                passwordErrorMessage.classList.remove("hide");
+                passwordInput.classList.add("invalid");
+                return;
+            } else {
+                // 비밀번호가 유효할 때
+                userPassword = password; // 전역 변수에 비밀번호 저장
+                passwordErrorMessage.textContent = "사용 가능한 비밀번호입니다.";
+                passwordErrorMessage.classList.remove("hide");
+                passwordInput.classList.add("valid");
+                signupInput.classList.remove("signup__input--invalid");
+                signupInput.classList.add("signup__input--valid");
+
+                // 기존 버튼을 새 버튼으로 교체
+                const newButton = document.createElement('button');
+                newButton.className = 'btn confirm';
+                newButton.textContent = '다음 단계';
+                newButton.id = 'next-step-button';
+                newButton.onclick = showNicknameInput;
+
+                const oldButton = document.getElementById('signpassword');
+                oldButton.parentNode.replaceChild(newButton, oldButton);
+            }
+        }
+
+        function showNicknameInput() {
+            const signupContainer = document.getElementById('signup-container');
+            const newContent = `
+                <div class="signup">
+                    <p class="signup__text fs20-bold">다양한 음악의 발견과 탐색을 즐기세요.</p>
+                    <div id="signup-input" class="signup__input">
+                        <label for="nickname" class="fs14">플리에서 사용할 닉네임을 입력해주세요.</label>
+                        <input type="text" class="fs14" id="nickname" placeholder="">
+                        <p class="fs14 hide" id="nickname-error-message">닉네임을 입력해 주세요.</p>
+                    </div>
+                    <button id="signnickname" class="btn confirm" onclick="validateNickname()">확인</button>
+                </div>
+            `;
+            signupContainer.innerHTML = newContent;
+        }
+
+        async function validateNickname() {
+            const nicknameInput = document.getElementById('nickname');
+            const nicknameErrorMessage = document.getElementById('nickname-error-message');
+            const nickname = nicknameInput.value.trim();
+            const signupInput = document.getElementById('signup-input');
+
+            // 초기화
+            nicknameErrorMessage.textContent = "";
+            nicknameErrorMessage.classList.add("hide");
+            nicknameInput.classList.remove("invalid");
+
+            // 닉네임 유효성 검사
+            if (nickname === "") {
+                nicknameErrorMessage.textContent = "닉네임을 입력해 주세요.";
+                nicknameErrorMessage.classList.remove("hide");
+                nicknameInput.classList.add("invalid");
+                return;
+            }
+
+            try {
+                // API 호출
+                const response = await fetch(`/api/nickname/${encodeURIComponent(nickname)}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ nickname: nickname })
+                });
+
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+
+                const result = await response.json();
+
+                if (result.exists) {
+                    nicknameErrorMessage.textContent = "이미 사용 중인 닉네임입니다.";
+                    nicknameErrorMessage.classList.remove("hide");
+                    nicknameInput.classList.add("invalid");
+                } else {
+                    // 닉네임이 유효할 때
+                    userNickName = nickname;
+                    nicknameErrorMessage.textContent = "사용 가능한 닉네임입니다.";
+                    nicknameErrorMessage.classList.remove("hide");
+                    nicknameInput.classList.add("valid");
+                    signupInput.classList.remove("signup__input--invalid");
+                    signupInput.classList.add("signup__input--valid");
+
+                    // 기존 버튼을 새 버튼으로 교체
+                    const newButton = document.createElement('button');
+                    newButton.className = 'btn confirm';
+                    newButton.textContent = '회원가입 하기';
+                    newButton.id = 'next-step-button';
+                    newButton.onclick = async function() {
+                        await submitSignup(); // 회원가입 요청
+                        showSuccess(); // 모달 표시
+                    };
+
+                    const oldButton = document.getElementById('signnickname');
+                    oldButton.parentNode.replaceChild(newButton, oldButton);
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                nicknameErrorMessage.textContent = "서버에 연결할 수 없습니다.";
+                nicknameErrorMessage.classList.remove("hide");
+                nicknameInput.classList.add("invalid");
+            }
+        }
+
+            async function submitSignup() {
+                try {
+                    // 회원가입 API 호출
+                    const signupResponse = await fetch('/api/signup', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({ email: userEmail, password: userPassword, nickname: userNickName })
+                    });
+
+                    if (!signupResponse.ok) {
+                        throw new Error('Network response was not ok');
+                    }
+
+                    const signupResult = await signupResponse.json();
+                    if (signupResult.success) {
+                        success = true; // 회원가입 성공 시 success 플래그 설정
+                    } else {
+                        alert("회원가입에 실패했습니다.");
+                    }
+                } catch (error) {
+                    console.error('Error:', error);
+                    // alert("회원가입 중 오류가 발생했습니다.");
+                }
+            }
+
+
+        function showSuccess() {
+            success = true;
+            const modalHtml = `
+                <div class="modal" style="display: flex; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);">
+                    <div class="modal__title">
+                        <span class="fs20">회원가입 완료</span>
+                    </div>
+                    <div class="modal__text">
+                        <span class="fs14">회원가입이 성공적으로 완료 되었습니다.</span>
+                        <span class="fs14">PLYY에 오신 걸 환영합니다 :)</span>
+                    </div>
+                    <div class="modal__btns">
+                        <button class="btn confirm" onclick="window.location.href='/'">확인</button>
+                    </div>
+                </div>
+            `;
+
+            const signupContainer = document.getElementById('signup-container');
+            signupContainer.innerHTML += modalHtml; // 모달 HTML 추가
+        }
+
+    </script>
+
+{% endblock %}

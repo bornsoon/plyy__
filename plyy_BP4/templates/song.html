@@ -1,0 +1,94 @@
+{% extends "base_none.html" %}
+
+{% block container %}
+    <!-- 유투브 비디오 -->
+    <div class="song__youtube">
+    <iframe id="video" width=100% height=100% style="border:none"></iframe>
+    </div>
+    <!-- 곡 인덱스  -->
+    <div class="song__index align both">
+        <div class="index badge tag" id="page"></div>
+        <button class="btn__arrow-left--white" id="before"></button>
+        <button class="btn__arrow-right" id="after"></button>
+    </div>
+    <!-- 곡 상세 -->
+    <div class="song">
+        <div class="song__img"><img id="image"></div>
+        <div class="song__info">
+            <p class="h1" id="song_title"></p>
+            <p class="fs16" id="song_artist"></p>
+            <p class="fs16" id="song_album"></p>
+        </div>
+    </div>
+    <!-- 곡에대한 큐레이터 코멘트 -->
+    <div class="song-cmt" id="song_comment" style="visibility: hidden;">
+        <div class="pretendard"></div>
+    </div>
+
+    <div id="tost_message">URL이 복사되었습니다!</div>
+
+    <div class="fixed-floating">
+        <div class="floating-song">
+            <div><button class="btn__float__arrow__left" aria-label="뒤로가기"></button></div>
+            <div><button class="btn__float__share--black" aria-label="플레이리스트 공유하기"></button></div>
+        </div>
+    </div>
+    
+    
+</div>
+{% endblock %}
+
+{% block script %}
+    <script src="/static/js/sfloating.js"></script>
+    <script>
+        mainDiv = document.getElementById('main-container');
+        mainDiv.style.backgroundImage = "url('/static/images/song-detail-background.jpg')";
+        mainDiv.style.backgroundImage = "no-repeat";
+        mainDiv.style.backgroundSize = "cover";
+
+        document.addEventListener('DOMContentLoaded', function() {
+            let url = window.location.href;
+            url = url.split('/');
+            let plyyId = url[url.length - 2];
+            let song_num = url[url.length - 1] - 1;
+            fetchSong(plyyId, song_num);
+        });
+        
+        function fetchSong(plyyId, song_num) {
+            fetch(`/api/plyy/${plyyId}/${song_num}`)
+            .then(response =>  response.json())
+            .then(track => {
+                document.title =  track.title + ' | PLYY';
+                const video = document.getElementById('video');
+                const image = document.getElementById('image');
+                const page = document.getElementById('page');
+                const song_title = document.getElementById('song_title');
+                const artist = document.getElementById('song_artist');
+                const album = document.getElementById('song_album');
+                const song_comment = document.getElementById('song_comment');
+                const before_page = document.getElementById('before');
+                const after_page = document.getElementById('after');
+                if (track.comment) {
+                    song_comment.style.visibility = "visible";
+                }
+                song_comment.innerHTML = `<div class="pretendard">${track.comment}</div>`
+                video.setAttribute('src', `${track.vid}`);
+                image.setAttribute('src', `${track.img}`);
+                page.innerHTML = '<span>' + `${song_num + 1}` + '</span>' +
+                                 '<span>&nbsp;/&nbsp;</span>' +
+                                 '<span>' + track.total_num + '</span>';
+                before_page.setAttribute('onclick', `location.href='/plyy/${plyyId}/${song_num}'`);
+                after_page.setAttribute('onclick', `location.href='/plyy/${plyyId}/${song_num + 2}'`);
+                if (song_num == 0) {
+                    before_page.style.visibility = 'hidden';
+                } else if (song_num + 1== track.total_num){
+                    after_page.style.visibility = 'hidden';
+                }
+                song_title.textContent = track.title;
+                artist.textContent = track.artist;
+                album.textContent = track.album
+            })
+            .catch(error => console.error('데이터를 처리하는 과정에서 오류가 발생하였습니다.'))
+        };
+    </script>
+{% endblock %}

@@ -1,0 +1,491 @@
+{% extends "base_footer.html" %}
+
+{% block content %}
+<main class="main">
+    <div class="main__container">
+        <!-- 메인 검색결과 탭 -->
+        <div>
+            <!-- 마이페이지 타이틀 -->
+            <div class="tab-type3 align left">
+                <div><button class="btn__arrow-left--white" onclick="history.back()"></button></div>
+                <div><button class="h2">내 정보 수정</button></div>
+            </div>
+            <!-- 내 정보 수정 리스트 -->
+            <ul class="edit-info">
+                <li class="edit-info__profile">
+                    <a href="" class="align both">
+                        <img id="profile-img" src="" alt="" class="">
+                        <button class="btn__arrow-right"></button>
+                    </a>
+                </li>
+                <li class="edit-info__list">
+                    <a href="" class="align both" onclick="showNicknameModal(event)">
+                        <div class="edit-info__list__detail">
+                            <span class="fs20-bold">닉네임</span>
+                            <span id="profile-name" class="fs20"></span>
+                        </div>
+                        <button class="btn__arrow-right"></button>
+                    </a>
+                </li>
+                <li class="edit-info__list">
+                    <a href="" class="align both" onclick="changePw(event)">
+                        <div class="edit-info__list__detail">
+                            <span class="fs20-bold">비밀번호</span>
+                            <span class="fs20">********</span>
+                        </div>
+                        <button class="btn__arrow-right"></button>
+                    </a>
+                </li>
+                <li class="edit-info__list">
+                    <!-- 로그아웃 폼 추가 -->
+                    <form id="logout-form" action="/logout" method="POST">
+                        <a href="#" class="align both" onclick="showLogoutModal(event)">
+                            <div class="edit-info__list__detail">
+                                <span class="fs20-bold">로그아웃</span>
+                            </div>
+                            <button class="btn__arrow-right"></button>
+                        </a>
+                    </form>
+                </li>
+            </ul>
+
+            <!-- 로그아웃 클릭시 노출시킬 모달 -->
+            <div id="logout-modal" class="modal hide">
+                <div class="modal__title">
+                    <span class="fs20">로그아웃</span>
+                </div>
+                <div class="modal__text">
+                    <span class="fs14">정말로 로그아웃 하시겠습니까?</span>
+                </div>
+                <div class="modal__btns align both">
+                    <button class="btn confirm" onclick="confirmLogout()">확인</button>
+                    <button class="btn cancel" onclick="cancelLogout()">취소</button>
+                </div>
+            </div>
+
+            <!-- 현재 비밀번호 확인 모달 -->
+            <div id="change-pw1" class="modal hide">
+                <div class="modal__title">
+                    <span class="fs20">비밀번호 변경</span>
+                </div>
+                <div class="modal__text">
+                    <span class="fs14">현재 비밀번호를 입력해주세요.</span>
+                    <form id="current-pw-form" action="">
+                        <input type="password" id="current-pw" class="fs14" placeholder="비밀번호 확인">
+                        <p id="current-pw-error" class="fs14 hide">비밀번호가 올바르지 않습니다.</p>
+                    </form>
+                </div>
+                <div class="modal__btns align both">
+                    <button class="btn confirm" onclick="verifyCurrentPassword()">확인</button>
+                    <button class="btn cancel" onclick="closeCurrentPwModal()">취소</button>
+                </div>
+            </div>
+
+            <!-- 비밀번호 변경 모달 -->
+            <div id="change-pw2" class="modal hide">
+                <div class="modal__title">
+                    <span class="fs20">비밀번호 변경</span>
+                </div>
+                <div class="modal__text">
+                    <span class="fs14">변경할 비밀번호를 입력해 주세요.</span>
+                    <form id="new-pw-form" action="">
+                        <input type="password" id="new-pw" class="fs14" placeholder="특수문자 포함 8자리 이상">
+                        <p id="new-pw-error" class="fs14 hide">비밀번호 형식을 확인해 주세요.</p>
+                    </form>
+                </div>
+                <div class="modal__btns align both">
+                    <button class="btn confirm" onclick="checkNewPassword()">확인</button>
+                    <button class="btn cancel" onclick="closeNewPwModal()">취소</button>
+                </div>
+            </div>
+
+            <!-- 비밀번호 변경 확인 모달 -->
+            <div id="change-pw3" class="modal hide">
+                <div class="modal__title">
+                    <span class="fs20">비밀번호 변경</span>
+                </div>
+                <div class="modal__text">
+                    <span class="fs14">변경할 비밀번호를 한 번 더 입력해 주세요.</span>
+                    <form action="">
+                        <input type="password" class="fs14" placeholder="특수문자 포함 8자리 이상">
+                        <p class="fs14 hide">입력된 비밀번호가 일치합니다.</p>
+                    </form>
+                </div>
+                <div class="modal__btns align both">
+                    <button class="btn confirm">확인</button>
+                    <button class="btn cancel">취소</button>
+                </div>
+            </div>
+
+            <!-- 비밀번호 성공 모달 -->
+            <div id="change-pw4" class="modal hide">
+                <div class="modal__title">
+                    <span class="fs20">비밀번호 변경</span>
+                </div>
+                <div class="modal__text">
+                    <span class="fs14">비밀번호가 변경되었습니다</span>
+                </div>
+                <div class="modal__btns">
+                    <button class="btn confirm">확인</button>
+                </div>
+            </div>
+
+
+            <!-- 닉네임 변경 모달 -->
+            <div id="nickname" class="modal hide">
+                <div class="modal__title">
+                    <span class="fs20">닉네임 변경</span>
+                </div>
+                <div class="modal__text">
+                    <span class="fs14">새로운 닉네임을 입력해주세요.</span>
+                    <form action="">
+                        <input id="current-nickname" value="" type="text" class="fs14">
+                        <p id="nickname-error-message" class="fs14 hide"></p>
+                    </form>
+                </div>
+                <div class="modal__btns align both">
+                    <button class="btn confirm" onclick="validateNickname()">확인</button>
+                    <button class="btn cancel" onclick="closeNickModal()">취소</button>
+                </div>
+            </div>
+
+            <!-- 닉네임 변경 성공 모달 -->
+            <div id="success-nickname" class="modal hide">
+                <div class="modal__title">
+                    <span class="fs20">닉네임 변경</span>
+                </div>
+                <div class="modal__text">
+                    <span class="fs14">닉네임이 변경되었습니다</span>
+                </div>
+                <div class="modal__btns">
+                    <button class="btn confirm">확인</button>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</main>
+
+{% endblock %}
+
+{% block script %}
+
+    <script>
+        // 서버 측에서 템플릿 변수를 JavaScript 변수로 설정
+        const userId = "{{ session.id }}";
+        const userNickname = "{{ session.nickname }}";
+
+        // 닉네임 변경 value 동적 동기화
+        function setInputValue() {
+        document.getElementById('current-nickname').value = userNickname;
+        }
+
+
+        // 닉네임 변경 모달 표시 함수
+        function showNicknameModal(event) {
+            event.preventDefault();
+            modal = document.getElementById('nickname')
+            modal.classList.remove('hide');
+            modal.style.display = 'flex'; // 모달을 화면에 표시
+            modal.style.position = 'fixed';
+            modal.style.top = '45%'; // 화면 중앙에 위치
+            modal.style.left = '50%'; // 화면 중앙에 위치
+            modal.style.transform = 'translate(-50%, -50%)'; // 중앙 정렬
+        }
+        setInputValue();
+
+
+
+        async function validateNickname() {
+            const nicknameInput = document.getElementById('current-nickname');
+            const nicknameErrorMessage = document.getElementById('nickname-error-message');
+            const nickname = nicknameInput.value.trim();
+
+            // 초기화
+            nicknameErrorMessage.textContent = "";
+            nicknameErrorMessage.classList.add("hide");
+            nicknameInput.classList.remove("invalid");
+
+            // 닉네임 유효성 검사
+            if (nickname === "") {
+                nicknameErrorMessage.textContent = "닉네임을 입력해 주세요.";
+                nicknameErrorMessage.classList.remove("hide");
+                nicknameInput.classList.add("invalid");
+                return;
+            }
+
+            try {
+                // API 호출
+                const response = await fetch(`/api/nickname/${encodeURIComponent(nickname)}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ nickname: nickname })
+                });
+
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+
+                const result = await response.json();
+
+                if (result.exists) {
+                    nicknameErrorMessage.textContent = "이미 사용 중인 닉네임입니다.";
+                    document.querySelector('#nickname .modal__text').classList.add('modal__text--invalid');
+                    nicknameErrorMessage.classList.remove("hide");
+
+                } else {
+                    // 닉네임이 유효할 때
+                    nicknameErrorMessage.textContent = "사용 가능한 닉네임입니다.";
+                    document.querySelector('#nickname .modal__text').classList.add('modal__text--valid');
+                    nicknameErrorMessage.classList.remove("hide");
+                    nicknameInput.classList.add("valid");
+
+                    // 기존 버튼을 새 버튼으로 교체
+                    const buttonContainer = document.querySelector('#nickname .modal__btns');
+                    buttonContainer.classList.remove('align', 'both'); // 레이아웃 변경
+
+                    // 기존 버튼 제거
+                    buttonContainer.innerHTML = '';
+
+                    // 새 버튼 추가
+                    const newButton = document.createElement('button');
+                    newButton.className = 'btn confirm';
+                    newButton.textContent = '닉네임 변경하기';
+                    newButton.onclick = async function() {
+                        // 닉네임 변경 요청
+                        const response = await fetch('/api/change-nickname', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify({ newNickname: nickname })
+                        });
+
+                        const result = await response.json();
+
+                        if (result.success) {
+                            document.getElementById('nickname').classList.add('hide'); // 확인 모달 닫기
+                            const modal = document.getElementById('success-nickname');
+                            modal.classList.remove('hide');
+                            modal.style.display = 'flex'; // 모달을 화면에 표시
+                            modal.style.position = 'fixed';
+                            modal.style.top = '45%'; // 화면 중앙에 위치
+                            modal.style.left = '50%'; // 화면 중앙에 위치
+                            modal.style.transform = 'translate(-50%, -50%)'; // 중앙 정렬
+                            closeNickModal(); // 모달 닫기
+                        } else {
+                            alert(result.message); // 실패 메시지 표시
+                        }
+                    }
+                    buttonContainer.appendChild(newButton);
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                nicknameErrorMessage.textContent = "서버에 연결할 수 없습니다.";
+                nicknameErrorMessage.classList.remove("hide");
+                nicknameInput.classList.add("invalid");
+            }
+        }
+
+        function closeNickModal() {
+            document.getElementById('nickname').classList.add('hide');
+        }
+
+        // 동적으로 이미지와 이름을 설정하는 함수
+        function updateProfile() {
+            const profileImg = document.getElementById('profile-img');
+            const profileName = document.getElementById('profile-name');
+
+            // 이미지 URL 설정
+            if (profileImg) {
+                profileImg.src = `/static/cardimage/U${userId}.jpg`;
+            }
+
+            // 이름 설정
+            if (profileName) {
+                profileName.textContent = userNickname;
+            }
+        }
+
+        // 페이지가 로드될 때 프로필 업데이트 함수 호출
+        document.addEventListener('DOMContentLoaded', updateProfile);
+
+        // 로그아웃 모달 표시 함수
+        function showLogoutModal(event) {
+            event.preventDefault();
+            modal = document.getElementById('logout-modal')
+            modal.classList.remove('hide');
+            modal.style.display = 'flex'; // 모달을 화면에 표시
+            modal.style.position = 'fixed';
+            modal.style.top = '45%'; // 화면 중앙에 위치
+            modal.style.left = '50%'; // 화면 중앙에 위치
+            modal.style.transform = 'translate(-50%, -50%)'; // 중앙 정렬
+        }
+
+        // 로그아웃 확인 함수
+        function confirmLogout() {
+            document.getElementById('logout-form').submit();
+        }
+
+        // 로그아웃 취소 함수
+        function cancelLogout() {
+            document.getElementById('logout-modal').classList.add('hide');
+        }
+
+        // 비밀번호 변경 모달 표시 함수
+        function changePw(event) {
+                event.preventDefault();
+                const modal = document.getElementById('change-pw1');
+                if (modal) {
+                    modal.classList.remove('hide');
+                    modal.style.display = 'flex'; // 모달을 화면에 표시
+                    modal.style.position = 'fixed';
+                    modal.style.top = '45%'; // 화면 중앙에 위치
+                    modal.style.left = '50%'; // 화면 중앙에 위치
+                    modal.style.transform = 'translate(-50%, -50%)'; // 중앙 정렬
+                } else {
+                    console.error('비밀번호 변경 모달을 찾을 수 없습니다.');
+                }
+            }
+
+        // 현재 비밀번호 확인 API 호출 및 모달 표시 함수
+        function verifyCurrentPassword() {
+            const currentPw = document.getElementById('current-pw').value;
+            fetch('/api/pw', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ password: currentPw })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.valid) {
+                    // 비밀번호가 올바르면 change-pw2 모달 표시
+                    document.getElementById('change-pw1').classList.add('hide');
+                    const modal = document.getElementById('change-pw2')
+                    modal.classList.remove('hide');
+                    modal.style.display = 'flex'; // 모달을 화면에 표시
+                    modal.style.position = 'fixed';
+                    modal.style.top = '45%'; // 화면 중앙에 위치
+                    modal.style.left = '50%'; // 화면 중앙에 위치
+                    modal.style.transform = 'translate(-50%, -50%)'; // 중앙 정렬
+                } else {
+                    // 비밀번호가 올바르지 않으면 오류 메시지 표시
+                    document.getElementById('current-pw-error').classList.remove('hide');
+                    document.querySelector('#change-pw1 .modal__text').classList.add('modal__text--invalid');
+                }
+            })
+            .catch(error => {
+                console.error('비밀번호 확인 중 오류 발생:', error);
+            });
+        }
+
+            // 현재 비밀번호 확인 모달 닫기
+            function closeCurrentPwModal() {
+                document.getElementById('change-pw1').classList.add('hide');
+            }
+
+            // 비밀번호 변경 모달 닫기
+            function closeNewPwModal() {
+                document.getElementById('change-pw2').classList.add('hide');
+            }
+
+
+            // 비밀번호 형식 검증 함수
+            function validatePassword(password) {
+                // 비밀번호가 8자리 이상이며 특수문자가 포함되어 있는지 검사
+                const passwordPattern = /^(?=.*[!@#$%^&*])[A-Za-z\d@$!%*?&]{8,}$/;
+                return passwordPattern.test(password);
+            }
+
+            // 비밀번호 확인 후 유효성 검사 함수
+            function checkNewPassword() {
+                const newPassword = document.getElementById('new-pw').value;
+
+                if (validatePassword(newPassword)) {
+                    // 비밀번호가 유효하면 비밀번호 변경 확인 모달 표시
+                    document.getElementById('change-pw2').classList.add('hide');
+                    const modal = document.getElementById('change-pw3');
+                    modal.classList.remove('hide');
+                    modal.style.display = 'flex'; // 모달을 화면에 표시
+                    modal.style.position = 'fixed';
+                    modal.style.top = '45%'; // 화면 중앙에 위치
+                    modal.style.left = '50%'; // 화면 중앙에 위치
+                    modal.style.transform = 'translate(-50%, -50%)'; // 중앙 정렬
+                } else {
+                    // 비밀번호가 유효하지 않으면 비밀번호 형식 불일치 메시지 표시
+                    document.getElementById('new-pw-error').classList.remove('hide');
+                    document.querySelector('#change-pw2 .modal__text').classList.add('modal__text--invalid');
+                }
+            }
+
+            // 비밀번호 변경 확인 모달에서 확인 버튼 클릭 시
+            document.querySelector('#change-pw3 .btn.confirm').addEventListener('click', function() {
+                const newPassword = document.querySelector('#new-pw').value;
+                const confirmPassword = document.querySelector('#change-pw3 input[type="password"]').value;
+                
+                // 비밀번호 일치 여부 확인
+                if (newPassword === confirmPassword) {
+                    // 비밀번호를 서버에 전송하여 변경 요청
+                    fetch('/api/change-password', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({ newPassword: newPassword })
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            // 비밀번호 변경 성공 처리
+                            closeNewPwModal(); // 모달 닫기
+                            document.getElementById('change-pw3').classList.add('hide'); // 확인 모달 닫기
+                            const modal = document.getElementById('change-pw4');
+                            modal.classList.remove('hide');
+                            modal.style.display = 'flex'; // 모달을 화면에 표시
+                            modal.style.position = 'fixed';
+                            modal.style.top = '45%'; // 화면 중앙에 위치
+                            modal.style.left = '50%'; // 화면 중앙에 위치
+                            modal.style.transform = 'translate(-50%, -50%)'; // 중앙 정렬
+
+                        } else {
+                            // 비밀번호 변경 실패 처리
+                            alert('비밀번호 변경에 실패했습니다.');
+                        }
+                    })
+                    .catch(error => {
+                        console.error('비밀번호 변경 중 오류 발생:', error);
+                    });
+                } else {
+                    // 비밀번호가 일치하지 않을 경우 오류 메시지 표시
+                    const errorMsg = document.querySelector('#change-pw3 .fs14');
+                    errorMsg.textContent = '입력한 비밀번호가 일치하지 않습니다.';
+                    document.querySelector('#change-pw3 .modal__text').classList.add('modal__text--invalid');
+                    errorMsg.classList.remove('hide');
+
+
+                }
+            });
+
+            // 비밀번호 변경 확인 모달에서 취소 버튼 클릭 시
+            document.querySelector('#change-pw3 .btn.cancel').addEventListener('click', function() {
+                document.getElementById('change-pw3').classList.add('hide');
+            });
+
+            // 비밀번호 성공 확인 버튼 클릭 시
+            document.querySelector('#change-pw4 .btn.confirm').addEventListener('click', function() {
+                document.getElementById('change-pw4').classList.add('hide');
+            });
+
+            // 닉네임 변경 성공 확인 버튼 클릭 시
+            document.querySelector('#success-nickname .btn.confirm').addEventListener('click', function() {
+            document.getElementById('success-nickname').classList.add('hide');
+            });
+
+
+    </script>
+
+{% endblock %}
