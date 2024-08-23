@@ -1,6 +1,6 @@
 import database as db
 from flask import Blueprint, jsonify, render_template, session, request
-from models import curatorlike_status, plyylike_status, tag_query, plyy_query, curator_query
+from models import plyylike_status, tag_query, plyy_query, curator_query
 from utils import extract_user
 
 main = Blueprint('main', __name__)
